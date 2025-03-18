@@ -12,16 +12,23 @@ namespace Client
     class Program
     {
 
+        // 정수형 숫자
+        //short //htons
+        //int,  //htonl
+        //long  //htonll
+        //[1][2]
+
         //[][]
         static void Main(string[] args)
         {
-            string jsonString = "{\"message\" : \"fdsdfsdfdsfdsfsdfdsfsdf sdfgsdfsdfg.\"}";
+            string jsonString = "{\"message\" : \"이건 클라이언트에서 서버로 보내는 패킷.\"}";
             byte[] message = Encoding.UTF8.GetBytes(jsonString);
             ushort length = (ushort)message.Length;
+
             //길이  자료
             //[][] [][][][][][][][]
             byte[] lengthBuffer = new byte[2];
-            lengthBuffer = BitConverter.GetBytes(length);
+            lengthBuffer = BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)length));
 
             //[][][][][][][][][][][]
             byte[] buffer = new byte[2 + length];
@@ -39,6 +46,8 @@ namespace Client
 
             int RecvLength = clientSocket.Receive(lengthBuffer, 2, SocketFlags.None);
             length = BitConverter.ToUInt16(lengthBuffer, 0);
+            length = (ushort)IPAddress.NetworkToHostOrder((short)length);
+
 
             byte[] recvBuffer = new byte[4096];
             RecvLength = clientSocket.Receive(recvBuffer, length, SocketFlags.None);
@@ -48,6 +57,6 @@ namespace Client
             Console.WriteLine(JsonString);
 
             clientSocket.Close();
-        }
+         }
     }
 }

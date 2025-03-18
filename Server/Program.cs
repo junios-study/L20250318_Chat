@@ -35,7 +35,9 @@ namespace Server
             //패킷 길이 받기(header)
             byte[] headerBuffer = new byte[2];
             int RecvLength = clientSocket.Receive(headerBuffer, 2, SocketFlags.None);
-            ushort packetlength = BitConverter.ToUInt16(headerBuffer, 0);
+            short packetlength = BitConverter.ToInt16(headerBuffer, 0);
+            packetlength = IPAddress.NetworkToHostOrder(packetlength);
+
 
             //[][][][][]
             //실제 패킷(header 길이 만큼)
@@ -48,9 +50,10 @@ namespace Server
 
             //Custom 패킷 만들기
             //다시 전송 메세지
-            string message = "{ \"message\" : \"sdfdsfdsfsdfdsdsfds 잘 받았다.\"}";
+            string message = "{ \"message\" : \"클라이언트 받고 서버꺼 추가.\"}";
             byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
-            ushort length = (ushort)messageBuffer.Length;
+            ushort length = (ushort)IPAddress.HostToNetworkOrder((short)messageBuffer.Length);
+
             //길이  자료
             //[][] [][][][][][][][]
             headerBuffer = BitConverter.GetBytes(length);
@@ -59,7 +62,7 @@ namespace Server
             byte[] packetBuffer = new byte[headerBuffer.Length + messageBuffer.Length];
 
             Buffer.BlockCopy(headerBuffer, 0, packetBuffer, 0, headerBuffer.Length);
-            Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, length);
+            Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, messageBuffer.Length);
 
             int SendLength = clientSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
 
