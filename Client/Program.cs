@@ -39,7 +39,7 @@ namespace Client
 
             Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            IPEndPoint listenEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4000);
+            IPEndPoint listenEndPoint = new IPEndPoint(IPAddress.Parse("1.0.0.1"), 4000);
 
             clientSocket.Connect(listenEndPoint);
 

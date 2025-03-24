@@ -22,7 +22,7 @@ namespace Server
         {
             Socket listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            IPEndPoint listenEndPoint = new IPEndPoint(IPAddress.Any, 4000);
+            IPEndPoint listenEndPoint = new IPEndPoint(IPAddress.Parse("192.168.0.22"), 4000);
 
             listenSocket.Bind(listenEndPoint);
 
@@ -39,7 +39,7 @@ namespace Server
 
 
                 //[listen]
-                Socket.Select(checkRead, null, null, -1);
+                Socket.Select(checkRead, null, null, 10);
 
                 foreach (Socket findSocket in checkRead)
                 {
@@ -51,31 +51,41 @@ namespace Server
                     }
                     else
                     {
-                        byte[] headerBuffer = new byte[2];
-                        int RecvLength = findSocket.Receive(headerBuffer, 2, SocketFlags.None);
-                        if (RecvLength > 0)
+                        try
                         {
-                            short packetlength = BitConverter.ToInt16(headerBuffer, 0);
-                            packetlength = IPAddress.NetworkToHostOrder(packetlength);
+                            byte[] headerBuffer = new byte[2];
+                            int RecvLength = findSocket.Receive(headerBuffer, 2, SocketFlags.None);
+                            if (RecvLength > 0)
+                            {
+                                short packetlength = BitConverter.ToInt16(headerBuffer, 0);
+                                packetlength = IPAddress.NetworkToHostOrder(packetlength);
 
-                            byte[] dataBuffer = new byte[4096];
-                            RecvLength = findSocket.Receive(dataBuffer, packetlength, SocketFlags.None);
-                            string JsonString = Encoding.UTF8.GetString(dataBuffer);
-                            Console.WriteLine(JsonString);
+                                byte[] dataBuffer = new byte[4096];
+                                RecvLength = findSocket.Receive(dataBuffer, packetlength, SocketFlags.None);
+                                string JsonString = Encoding.UTF8.GetString(dataBuffer);
+                                Console.WriteLine(JsonString);
 
-                            string message = "{ \"message\" : \"클라이언트 받고 서버꺼 추가.\"}";
-                            byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
-                            ushort length = (ushort)IPAddress.HostToNetworkOrder((short)messageBuffer.Length);
+                                string message = "{ \"message\" : \"클라이언트 받고 서버꺼 추가.\"}";
+                                byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
+                                ushort length = (ushort)IPAddress.HostToNetworkOrder((short)messageBuffer.Length);
 
-                            headerBuffer = BitConverter.GetBytes(length);
+                                headerBuffer = BitConverter.GetBytes(length);
 
-                            byte[] packetBuffer = new byte[headerBuffer.Length + messageBuffer.Length];
-                            Buffer.BlockCopy(headerBuffer, 0, packetBuffer, 0, headerBuffer.Length);
-                            Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, messageBuffer.Length);
-                            int SendLength = findSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
+                                byte[] packetBuffer = new byte[headerBuffer.Length + messageBuffer.Length];
+                                Buffer.BlockCopy(headerBuffer, 0, packetBuffer, 0, headerBuffer.Length);
+                                Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, messageBuffer.Length);
+                                int SendLength = findSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
+                            }
+                            else
+                            {
+                                findSocket.Close();
+                                clientSockets.Remove(findSocket);
+                            }
                         }
-                        else
+                        catch(Exception e)
                         {
+                            Console.WriteLine($"Error 낸 놈 : {findSocket.RemoteEndPoint}");
+
                             findSocket.Close();
                             clientSockets.Remove(findSocket);
                         }
