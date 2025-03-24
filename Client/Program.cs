@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using System.Threading;
 
 namespace Client
 {
@@ -42,19 +43,25 @@ namespace Client
 
             clientSocket.Connect(listenEndPoint);
 
-            int SendLength = clientSocket.Send(buffer, buffer.Length, SocketFlags.None);
+            for(int i = 0; i < 100; ++i)
+            {
 
-            int RecvLength = clientSocket.Receive(lengthBuffer, 2, SocketFlags.None);
-            length = BitConverter.ToUInt16(lengthBuffer, 0);
-            length = (ushort)IPAddress.NetworkToHostOrder((short)length);
+                int SendLength = clientSocket.Send(buffer, buffer.Length, SocketFlags.None);
+
+                int RecvLength = clientSocket.Receive(lengthBuffer, 2, SocketFlags.None);
+                length = BitConverter.ToUInt16(lengthBuffer, 0);
+                length = (ushort)IPAddress.NetworkToHostOrder((short)length);
 
 
-            byte[] recvBuffer = new byte[4096];
-            RecvLength = clientSocket.Receive(recvBuffer, length, SocketFlags.None);
+                byte[] recvBuffer = new byte[4096];
+                RecvLength = clientSocket.Receive(recvBuffer, length, SocketFlags.None);
 
-            string JsonString = Encoding.UTF8.GetString(recvBuffer);
+                string JsonString = Encoding.UTF8.GetString(recvBuffer);
 
-            Console.WriteLine(JsonString);
+                Console.WriteLine(JsonString);
+
+                Thread.Sleep(100);
+            }
 
             clientSocket.Close();
          }

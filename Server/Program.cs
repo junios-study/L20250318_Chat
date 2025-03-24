@@ -28,46 +28,62 @@ namespace Server
 
             listenSocket.Listen(10);
 
-            Socket clientSocket = listenSocket.Accept();
+            List<Socket> clientSockets = new List<Socket>();
+            List<Socket> checkRead = new List<Socket>();
 
-            //[][] [][][][][][]
-
-            //패킷 길이 받기(header)
-            byte[] headerBuffer = new byte[2];
-            int RecvLength = clientSocket.Receive(headerBuffer, 2, SocketFlags.None);
-            short packetlength = BitConverter.ToInt16(headerBuffer, 0);
-            packetlength = IPAddress.NetworkToHostOrder(packetlength);
-
-
-            //[][][][][]
-            //실제 패킷(header 길이 만큼)
-            byte[] dataBuffer = new byte[4096];
-            RecvLength = clientSocket.Receive(dataBuffer, packetlength, SocketFlags.None);
-
-            string JsonString = Encoding.UTF8.GetString(dataBuffer);
-
-            Console.WriteLine(JsonString);
-
-            //Custom 패킷 만들기
-            //다시 전송 메세지
-            string message = "{ \"message\" : \"클라이언트 받고 서버꺼 추가.\"}";
-            byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
-            ushort length = (ushort)IPAddress.HostToNetworkOrder((short)messageBuffer.Length);
-
-            //길이  자료
-            //[][] [][][][][][][][]
-            headerBuffer = BitConverter.GetBytes(length);
-
-            //[][][][][][][][][][][]
-            byte[] packetBuffer = new byte[headerBuffer.Length + messageBuffer.Length];
-
-            Buffer.BlockCopy(headerBuffer, 0, packetBuffer, 0, headerBuffer.Length);
-            Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, messageBuffer.Length);
-
-            int SendLength = clientSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
+            while (true)
+            {
+                checkRead.Clear();
+                checkRead = new List<Socket>(clientSockets);
+                checkRead.Add(listenSocket);
 
 
-            clientSocket.Close();
+                //[listen]
+                Socket.Select(checkRead, null, null, -1);
+
+                foreach (Socket findSocket in checkRead)
+                {
+                    if (findSocket == listenSocket)
+                    {
+                        Socket clientSocket = listenSocket.Accept();
+                        clientSockets.Add(clientSocket);
+                        Console.WriteLine($"Connect client : {clientSocket.RemoteEndPoint}");
+                    }
+                    else
+                    {
+                        byte[] headerBuffer = new byte[2];
+                        int RecvLength = findSocket.Receive(headerBuffer, 2, SocketFlags.None);
+                        if (RecvLength > 0)
+                        {
+                            short packetlength = BitConverter.ToInt16(headerBuffer, 0);
+                            packetlength = IPAddress.NetworkToHostOrder(packetlength);
+
+                            byte[] dataBuffer = new byte[4096];
+                            RecvLength = findSocket.Receive(dataBuffer, packetlength, SocketFlags.None);
+                            string JsonString = Encoding.UTF8.GetString(dataBuffer);
+                            Console.WriteLine(JsonString);
+
+                            string message = "{ \"message\" : \"클라이언트 받고 서버꺼 추가.\"}";
+                            byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
+                            ushort length = (ushort)IPAddress.HostToNetworkOrder((short)messageBuffer.Length);
+
+                            headerBuffer = BitConverter.GetBytes(length);
+
+                            byte[] packetBuffer = new byte[headerBuffer.Length + messageBuffer.Length];
+                            Buffer.BlockCopy(headerBuffer, 0, packetBuffer, 0, headerBuffer.Length);
+                            Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, messageBuffer.Length);
+                            int SendLength = findSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
+                        }
+                        else
+                        {
+                            findSocket.Close();
+                            clientSockets.Remove(findSocket);
+                        }
+                    }
+
+                }
+            }
+
             listenSocket.Close();
         }
     }
