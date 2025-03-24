@@ -7,11 +7,22 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Threading;
+using System.Data;
+using System.Diagnostics;
 
 namespace Client
 {
     class Program
     {
+
+        //[][]
+        struct Packet
+        {
+            //[][]
+            string id; //20
+            //[][]
+            string message; //40
+        }
 
         // 정수형 숫자
         //short //htons
@@ -29,14 +40,13 @@ namespace Client
 
             clientSocket.Connect(listenEndPoint);
 
-           
             while(true)
             {
                 string InputChat;
                 Console.Write("채팅 : ");
                 InputChat = Console.ReadLine();
 
-                string jsonString = "{\"message\" : \"" + InputChat + ".\"}";
+                string jsonString = "{\"id\" : \"태규\",  \"message\" : \"" + InputChat + ".\"}";
                 byte[] message = Encoding.UTF8.GetBytes(jsonString);
                 ushort length = (ushort)message.Length;
 

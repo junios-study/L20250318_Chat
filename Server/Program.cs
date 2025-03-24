@@ -40,7 +40,7 @@ namespace Server
 
                 //Polling
                 //[listen]
-                Socket.Select(checkRead, null, null, 10);
+                Socket.Select(checkRead, null, null, -1);
 
                 foreach (Socket findSocket in checkRead)
                 {
@@ -100,6 +100,9 @@ namespace Server
                 }
 
                 //Server 작업
+                {
+                    Console.WriteLine("서버 작업");
+                }
 
             }
 
