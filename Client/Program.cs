@@ -33,6 +33,7 @@ namespace Client
             while(true)
             {
                 string InputChat;
+                Console.Write("채팅 : ");
                 InputChat = Console.ReadLine();
 
                 string jsonString = "{\"message\" : \"" + InputChat + ".\"}";
@@ -52,19 +53,17 @@ namespace Client
 
                 int SendLength = clientSocket.Send(buffer, buffer.Length, SocketFlags.None);
 
+
+
                 int RecvLength = clientSocket.Receive(lengthBuffer, 2, SocketFlags.None);
                 length = BitConverter.ToUInt16(lengthBuffer, 0);
                 length = (ushort)IPAddress.NetworkToHostOrder((short)length);
-
-
                 byte[] recvBuffer = new byte[4096];
                 RecvLength = clientSocket.Receive(recvBuffer, length, SocketFlags.None);
 
                 string JsonString = Encoding.UTF8.GetString(recvBuffer);
 
                 Console.WriteLine(JsonString);
-
-                Thread.Sleep(100);
             }
 
             clientSocket.Close();

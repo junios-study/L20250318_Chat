@@ -88,9 +88,9 @@ namespace Server
                                 clientSockets.Remove(findSocket);
                             }
                         }
-                        catch(SocketException e)
+                        catch(Exception e)
                         {
-                            Console.WriteLine($"Error 낸 놈 : {findSocket.RemoteEndPoint}");
+                            Console.WriteLine($"Error 낸 놈 : {e.Message} {findSocket.RemoteEndPoint}");
 
                             findSocket.Close();
                             clientSockets.Remove(findSocket);
