@@ -66,7 +66,9 @@ namespace Server
                                 string JsonString = Encoding.UTF8.GetString(dataBuffer);
                                 Console.WriteLine(JsonString);
 
-                                string message = "{ \"message\" : \"클라이언트 받고 서버꺼 추가.\"}";
+                                JObject clientData = JObject.Parse(JsonString);
+
+                                string message = "{ \"message\" : \""  + clientData.Value<String>("message") +  "\"}";
                                 byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
                                 ushort length = (ushort)IPAddress.HostToNetworkOrder((short)messageBuffer.Length);
 
