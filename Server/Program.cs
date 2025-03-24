@@ -38,6 +38,7 @@ namespace Server
                 checkRead.Add(listenSocket);
 
 
+                //Polling
                 //[listen]
                 Socket.Select(checkRead, null, null, 10);
 
@@ -74,7 +75,10 @@ namespace Server
                                 byte[] packetBuffer = new byte[headerBuffer.Length + messageBuffer.Length];
                                 Buffer.BlockCopy(headerBuffer, 0, packetBuffer, 0, headerBuffer.Length);
                                 Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, messageBuffer.Length);
-                                int SendLength = findSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
+                                foreach (Socket sendSocket in clientSockets)
+                                {
+                                    int SendLength = sendSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
+                                }
                             }
                             else
                             {
@@ -82,7 +86,7 @@ namespace Server
                                 clientSockets.Remove(findSocket);
                             }
                         }
-                        catch(Exception e)
+                        catch(SocketException e)
                         {
                             Console.WriteLine($"Error 낸 놈 : {findSocket.RemoteEndPoint}");
 
@@ -92,6 +96,9 @@ namespace Server
                     }
 
                 }
+
+                //Server 작업
+
             }
 
             listenSocket.Close();
