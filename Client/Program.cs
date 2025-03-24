@@ -74,6 +74,9 @@ namespace Client
             chatInputThread.Start();
             recvThread.Start();
 
+            chatInputThread.Join();
+            recvThread.Join();
+
 
             clientSocket.Close();
          }

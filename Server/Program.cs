@@ -80,16 +80,49 @@ namespace Server
                             }
                             else
                             {
+                                string message = "{ \"message\" : \" Disconnect : " + findSocket.RemoteEndPoint + " \"}";
+                                byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
+                                ushort length = (ushort)IPAddress.HostToNetworkOrder((short)messageBuffer.Length);
+
+                                headerBuffer = BitConverter.GetBytes(length);
+
+                                byte[] packetBuffer = new byte[headerBuffer.Length + messageBuffer.Length];
+                                Buffer.BlockCopy(headerBuffer, 0, packetBuffer, 0, headerBuffer.Length);
+                                Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, messageBuffer.Length);
+
                                 findSocket.Close();
                                 clientSockets.Remove(findSocket);
+
+                                foreach (Socket sendSocket in clientSockets)
+                                {
+                                    int SendLength = sendSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
+                                }
                             }
                         }
                         catch(Exception e)
                         {
                             Console.WriteLine($"Error 낸 놈 : {e.Message} {findSocket.RemoteEndPoint}");
 
+                            string message = "{ \"message\" : \" Disconnect : " + findSocket.RemoteEndPoint + " \"}";
+                            byte[] messageBuffer = Encoding.UTF8.GetBytes(message);
+                            ushort length = (ushort)IPAddress.HostToNetworkOrder((short)messageBuffer.Length);
+
+                            byte[] headerBuffer = new byte[2];
+
+                            headerBuffer = BitConverter.GetBytes(length);
+
+                            byte[] packetBuffer = new byte[headerBuffer.Length + messageBuffer.Length];
+                            Buffer.BlockCopy(headerBuffer, 0, packetBuffer, 0, headerBuffer.Length);
+                            Buffer.BlockCopy(messageBuffer, 0, packetBuffer, headerBuffer.Length, messageBuffer.Length);
+
                             findSocket.Close();
                             clientSockets.Remove(findSocket);
+
+                            foreach (Socket sendSocket in clientSockets)
+                            {
+                                int SendLength = sendSocket.Send(packetBuffer, packetBuffer.Length, SocketFlags.None);
+                            }
+
                         }
                     }
 
