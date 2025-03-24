@@ -44,9 +44,10 @@ namespace Client
         {
             while (true)
             {
+                byte[] lengthBuffer = new byte[2];
 
                 int RecvLength = clientSocket.Receive(lengthBuffer, 2, SocketFlags.None);
-                length = BitConverter.ToUInt16(lengthBuffer, 0);
+                ushort length = BitConverter.ToUInt16(lengthBuffer, 0);
                 length = (ushort)IPAddress.NetworkToHostOrder((short)length);
                 byte[] recvBuffer = new byte[4096];
                 RecvLength = clientSocket.Receive(recvBuffer, length, SocketFlags.None);
