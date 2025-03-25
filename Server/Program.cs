@@ -33,6 +33,7 @@ namespace Server
                 {
                     clientSockets.Add(clientSocket);
                 }
+
                 Console.WriteLine($"Connect client : {clientSocket.RemoteEndPoint}");
 
                 Thread workThread = new Thread(new ParameterizedThreadStart(WorkThread));
@@ -64,11 +65,11 @@ namespace Server
                         string JsonString = Encoding.UTF8.GetString(dataBuffer);
                         Console.WriteLine(JsonString);
 
-                        string connectionString = "server=localhost;user=root;database=users;password=qweasd123";
-                        MySqlConnection mySqlConnection = new MySqlConnection(connectionString);
-
                         JObject clientData = JObject.Parse(JsonString);
                         string code = clientData.Value<String>("code");
+
+                        string connectionString = "server=localhost;user=root;database=users;password=qweasd123";
+                        MySqlConnection mySqlConnection = new MySqlConnection(connectionString);
 
                         try
                         {
@@ -110,6 +111,8 @@ namespace Server
                             }
                             else if (code.CompareTo("Signup") == 0)
                             {
+
+
                                 string userId = clientData.Value<String>("id");
                                 string userPassword = clientData.Value<String>("password");
                                 string name = clientData.Value<String>("name");
@@ -133,8 +136,23 @@ namespace Server
                                 result.Add("messge", "success");
                                 SendPacket(clientSocket, result.ToString());
                             }
+                            else if (code.CompareTo("Chat") == 0)
+                            {
+                                string userId = clientData.Value<String>("id");
+                                string userPassword = clientData.Value<String>("message");
+
+                                lock (_lock)
+                                {
+                                    foreach (Socket sendSocket in clientSockets)
+                                    {
+                                        SendPacket(sendSocket, JsonString);
+                                    }
+                                }
+
+                            }
+
                         }
-                        catch(Exception e)
+                        catch (Exception e)
                         {
                             Console.WriteLine(e.Message);
                             JObject result = new JObject();
