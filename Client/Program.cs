@@ -32,6 +32,19 @@ namespace Client
 
         }
 
+        static void RecvPacket(Socket toSocket, out string jsonString)
+        {
+            byte[] lengthBuffer = new byte[2];
+
+            int RecvLength = clientSocket.Receive(lengthBuffer, 2, SocketFlags.None);
+            ushort length = BitConverter.ToUInt16(lengthBuffer, 0);
+            length = (ushort)IPAddress.NetworkToHostOrder((short)length);
+            byte[] recvBuffer = new byte[4096];
+            RecvLength = clientSocket.Receive(recvBuffer, length, SocketFlags.None);
+
+            jsonString = Encoding.UTF8.GetString(recvBuffer);
+        }
+
         static void Main(string[] args)
         {
             clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -53,16 +66,8 @@ namespace Client
             result.Add("email", "robot@a.com");
             SendPacket(clientSocket, result.ToString());
 
-
-            byte[] lengthBuffer = new byte[2];
-
-            int RecvLength = clientSocket.Receive(lengthBuffer, 2, SocketFlags.None);
-            ushort length = BitConverter.ToUInt16(lengthBuffer, 0);
-            length = (ushort)IPAddress.NetworkToHostOrder((short)length);
-            byte[] recvBuffer = new byte[4096];
-            RecvLength = clientSocket.Receive(recvBuffer, length, SocketFlags.None);
-
-            string JsonString = Encoding.UTF8.GetString(recvBuffer);
+            string JsonString;
+            RecvPacket(clientSocket, out JsonString);
 
             Console.WriteLine(JsonString);
 
