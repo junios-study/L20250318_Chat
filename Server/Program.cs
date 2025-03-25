@@ -90,6 +90,13 @@ namespace Server
                                 if ( dataReader.Read() )
                                 {
                                     //로그인 성공
+                                    JObject result = new JObject();
+                                    result.Add("code", "loginresult");
+                                    result.Add("messge", "success");
+                                    result.Add("name", dataReader["name"].ToString());
+                                    result.Add("email", dataReader["email"].ToString());
+                                    result.ToString();
+
                                 }
                                 else
                                 {
