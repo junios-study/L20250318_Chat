@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using MySqlConnector;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -73,34 +74,59 @@ namespace Server
                         {
                             if (code.CompareTo("Login") == 0)
                             {
+                                string userId = clientData.Value<String>("id");
+                                string userPassword = clientData.Value<String>("password");
+
                                 mySqlConnection.Open();
                                 MySqlCommand mySqlCommand = new MySqlCommand();
                                 mySqlCommand.Connection = mySqlConnection;
 
                                 mySqlCommand.CommandText = "select * from users where user_id = @user_id and user_password = @user_password";
                                 mySqlCommand.Prepare();
-                                mySqlCommand.Parameters.AddWithValue("@user_id", "htk008");
-                                mySqlCommand.Parameters.AddWithValue("@user_password", "1234");
+                                mySqlCommand.Parameters.AddWithValue("@user_id", userId);
+                                mySqlCommand.Parameters.AddWithValue("@user_password", userPassword);
 
                                 MySqlDataReader dataReader = mySqlCommand.ExecuteReader();
+                                if ( dataReader.Read() )
+                                {
+                                    //로그인 성공
+                                }
+                                else
+                                {
+                                    //로그인 실패
+                                }
+
+
                             }
                             else if (code.CompareTo("Signup") == 0)
                             {
+                                string userId = clientData.Value<String>("id");
+                                string userPassword = clientData.Value<String>("password");
+                                string name = clientData.Value<String>("name");
+                                string email = clientData.Value<String>("email");
+
+                                mySqlConnection.Open();
                                 MySqlCommand mySqlCommand2 = new MySqlCommand();
                                 mySqlCommand2.Connection = mySqlConnection;
 
                                 mySqlCommand2.CommandText = "insert into users (user_id, user_password, name, email) values ( @user_id, @user_password, @name, @email)";
                                 mySqlCommand2.Prepare();
-                                mySqlCommand2.Parameters.AddWithValue("@user_id", "abc002");
-                                mySqlCommand2.Parameters.AddWithValue("@user_password", "333");
-                                mySqlCommand2.Parameters.AddWithValue("@name", "노형민");
-                                mySqlCommand2.Parameters.AddWithValue("@email", "abc001@abc001.com");
+                                mySqlCommand2.Parameters.AddWithValue("@user_id", userId);
+                                mySqlCommand2.Parameters.AddWithValue("@user_password", userPassword);
+                                mySqlCommand2.Parameters.AddWithValue("@name", name);
+                                mySqlCommand2.Parameters.AddWithValue("@email", email);
                                 mySqlCommand2.ExecuteNonQuery();
+
+                                //가입 성공했습니다.
                             }
                         }
                         catch(Exception e)
                         {
                             Console.WriteLine(e.Message);
+                        }
+                        finally
+                        {
+                            mySqlConnection.Close();
                         }
                     }
                     else
