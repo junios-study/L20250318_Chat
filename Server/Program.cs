@@ -206,7 +206,7 @@ namespace Server
         {
             listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            IPEndPoint listenEndPoint = new IPEndPoint(IPAddress.Parse("192.168.0.22"), 4000);
+            IPEndPoint listenEndPoint = new IPEndPoint(IPAddress.Any, 4000);
 
             listenSocket.Bind(listenEndPoint);
 
